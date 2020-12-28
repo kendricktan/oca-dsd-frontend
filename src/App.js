@@ -132,13 +132,13 @@ function App() {
                       top: 5,
                       right: 30,
                       left: 20,
-                      bottom: 5,
+                      bottom: 20,
                     }}
                   >
                     <XAxis
                       dataKey="name"
                       label={
-                        <CLabel value="LBs" position="bottom" offset={10}>
+                        <CLabel value="LBs" position="bottom">
                           Epoch
                         </CLabel>
                       }
@@ -208,7 +208,7 @@ function App() {
                       top: 5,
                       right: 30,
                       left: 20,
-                      bottom: 5,
+                      bottom: 20,
                     }}
                   >
                     <XAxis
