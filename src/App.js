@@ -60,7 +60,7 @@ function App() {
             "https://api-dsd.oca.wtf/data/DSD-DAO.json"
           ).then((x) => x.json());
 
-          const { tree, bar } = formatDaoStats(daoData, epoch - 3);
+          const { tree, bar } = formatDaoStats(daoData, epoch);
 
           setDaoStats(daoData);
           setDaoChartData(bar);
@@ -72,7 +72,7 @@ function App() {
             "https://api-dsd.oca.wtf/data/DSD-LP.json"
           ).then((x) => x.json());
 
-          const { tree, bar } = formatLpStats(lpData, epoch - 3);
+          const { tree, bar } = formatLpStats(lpData, epoch);
 
           setLpStats(lpData);
           setLpTreeValue(tree);
