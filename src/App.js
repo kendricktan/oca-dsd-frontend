@@ -12,20 +12,15 @@ import {
   Note,
   Divider,
 } from "@geist-ui/react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  Text as CText,
-  Label as CLabel,
-} from "recharts";
+import { BarChart } from "./barChart";
+import { LineChart } from "./lineChart";
 
 import { ethers } from "ethers";
-import { formatLpStats, formatDaoStats } from "./utils";
+import {
+  formatCouponPurchasesStats,
+  formatLpStats,
+  formatDaoStats,
+} from "./utils";
 
 const provider = new ethers.providers.CloudflareProvider(1);
 
@@ -42,6 +37,9 @@ function App() {
   const [daoStats, setDaoStats] = useState(null);
   const [daoChartData, setDaoChartData] = useState(null);
   const [daoTreeValue, setDaoTreeValue] = useState(null);
+  const [couponPurchaseStats, setCouponPurchaseStats] = useState(null);
+  const [couponPurchaseTreeValue, setCouponPurchaseTreeValue] = useState(null);
+  const [couponPurchaseChartData, setCouponPurchaseChartData] = useState(null);
   const [lpStats, setLpStats] = useState(null);
   const [lpTreeValue, setLpTreeValue] = useState(null);
   const [lpChartData, setLpChartData] = useState(null);
@@ -55,34 +53,39 @@ function App() {
       }
 
       if (epoch) {
-        if (!daoStats) {
-          const daoData = await fetch(
-            "https://api-dsd.oca.wtf/data/DSD-DAO.json"
-          ).then((x) => x.json());
+        const [daoData, lpData, couponPurchaseData] = await Promise.all(
+          [
+            "https://api-dsd.oca.wtf/data/DSD-DAO.json",
+            "https://api-dsd.oca.wtf/data/DSD-LP.json",
+            "https://api-dsd.oca.wtf/data/DSD-COUPONS-PURCHASED.json",
+          ].map((x) => fetch(x).then((x) => x.json()))
+        );
 
-          const { tree, bar } = formatDaoStats(daoData, epoch);
+        const daoDataFormatted = formatDaoStats(daoData, epoch);
 
-          setDaoStats(daoData);
-          setDaoChartData(bar);
-          setDaoTreeValue(tree);
-        }
+        setDaoStats(daoData);
+        setDaoChartData(daoDataFormatted.bar);
+        setDaoTreeValue(daoDataFormatted.tree);
 
-        if (!lpStats) {
-          const lpData = await fetch(
-            "https://api-dsd.oca.wtf/data/DSD-LP.json"
-          ).then((x) => x.json());
+        const lpDataFormatted = formatLpStats(lpData, epoch);
 
-          const { tree, bar } = formatLpStats(lpData, epoch);
+        setLpStats(lpData);
+        setLpTreeValue(lpDataFormatted.tree);
+        setLpChartData(lpDataFormatted.bar);
 
-          setLpStats(lpData);
-          setLpTreeValue(tree);
-          setLpChartData(bar);
-        }
+        const couponPurchaseDataFormatted = formatCouponPurchasesStats(
+          couponPurchaseData,
+          epoch
+        );
+
+        setCouponPurchaseStats(couponPurchaseData);
+        setCouponPurchaseTreeValue(couponPurchaseDataFormatted.tree);
+        setCouponPurchaseChartData(couponPurchaseDataFormatted.line);
       }
     };
 
     f();
-  }, [epoch, daoStats, lpStats]);
+  }, [epoch]);
 
   return (
     <Page size="large">
@@ -121,54 +124,7 @@ function App() {
                 </Link>
               </Note>
               <Spacer y={0.5} />
-              <div style={{ width: "95%", height: 300 }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={daoChartData.map((x) => {
-                      // eslint-disable-next-line
-                      return { ...x, ["DSD Unlocked"]: x.value };
-                    })}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 20,
-                    }}
-                  >
-                    <XAxis
-                      dataKey="name"
-                      label={
-                        <CLabel value="LBs" position="bottom">
-                          Epoch
-                        </CLabel>
-                      }
-                    />
-                    <YAxis
-                      textAnchor="end"
-                      tick={false}
-                      label={
-                        <CText
-                          x={0}
-                          y={0}
-                          dx={50}
-                          dy={200}
-                          offset={0}
-                          angle={-90}
-                        >
-                          DSD Unlocked
-                        </CText>
-                      }
-                    />
-                    <Tooltip
-                      formatter={(value) =>
-                        new Intl.NumberFormat("en").format(value)
-                      }
-                    />
-                    <Legend verticalAlign="top" />
-                    <Bar dataKey="DSD Unlocked" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <BarChart data={daoChartData} />
               <Divider />
               <Tree value={daoTreeValue} />
             </>
@@ -197,56 +153,41 @@ function App() {
                 </Link>
               </Note>
               <Spacer y={0.5} />
-              <div style={{ width: "95%", height: 300 }}>
-                <ResponsiveContainer>
-                  <BarChart
-                    data={lpChartData.map((x) => {
-                      // eslint-disable-next-line
-                      return { ...x, ["DSD Unlocked"]: x.value };
-                    })}
-                    margin={{
-                      top: 5,
-                      right: 30,
-                      left: 20,
-                      bottom: 20,
-                    }}
-                  >
-                    <XAxis
-                      dataKey="name"
-                      label={
-                        <CLabel value="LBs" position="bottom" offset={10}>
-                          Epoch
-                        </CLabel>
-                      }
-                    />
-                    <YAxis
-                      textAnchor="end"
-                      tick={false}
-                      label={
-                        <CText
-                          x={0}
-                          y={0}
-                          dx={50}
-                          dy={200}
-                          offset={0}
-                          angle={-90}
-                        >
-                          DSD Unlocked
-                        </CText>
-                      }
-                    />
-                    <Tooltip
-                      formatter={(value) =>
-                        new Intl.NumberFormat("en").format(value)
-                      }
-                    />
-                    <Legend verticalAlign="top" />
-                    <Bar dataKey="DSD Unlocked" fill="#8884d8" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
+              <BarChart data={lpChartData} />
               <Divider />
               <Tree value={lpTreeValue} />
+            </>
+          )}
+        </Tabs.Item>
+        <Tabs.Item label="Coupons (Purchased)" value="3">
+          {!couponPurchaseTreeValue && (
+            <Row style={{ padding: "50px 0" }}>
+              <Loading>Loading</Loading>
+            </Row>
+          )}
+          {couponPurchaseTreeValue && couponPurchaseChartData && (
+            <>
+              <Note label={false}>
+                <Link
+                  color
+                  href={`https://etherscan.io/address/${DAO_ADDRESS}`}
+                >
+                  DAO Address
+                </Link>
+                &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp; Epoch: {epoch}
+                &nbsp;&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;&nbsp;Last updated
+                block:{" "}
+                <Link
+                  color
+                  href={`https://etherscan.io/block/${couponPurchaseStats.lastUpdateBlock}`}
+                >
+                  {couponPurchaseStats.lastUpdateBlock}
+                </Link>
+              </Note>
+              <Spacer y={0.5} />
+              <LineChart data={couponPurchaseChartData} />
+              <Divider />
+              <Tree value={couponPurchaseTreeValue} />
             </>
           )}
         </Tabs.Item>
