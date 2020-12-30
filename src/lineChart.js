@@ -3,7 +3,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   Line,
   Text,
   Label,

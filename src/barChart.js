@@ -4,7 +4,6 @@ import {
   XAxis,
   YAxis,
   Tooltip,
-  Legend,
   ResponsiveContainer,
   Text as CText,
   Label as CLabel,
